@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "my-nnfs"
+version = "0.1.0"
+description = ""
+authors = ["eziox <ezioxxk@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+nnfs = "^0.5.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
