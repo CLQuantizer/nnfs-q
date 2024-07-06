@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import nnfs
 from nnfs.datasets import spiral_data
 
@@ -31,3 +32,44 @@ class ActivationSoftmax:
         exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
         probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
         self.output = probabilities
+
+
+class Loss:
+    def calculate(self, output, y):
+        sample_losses = self.forward(output, y)
+        data_loss = np.mean(sample_losses)
+        return data_loss
+
+
+class LossCategoricalCrossEntropy(Loss):
+    def forward(self, y_pred, y_true):
+        samples_length = len(y_pred)
+        y_pred_clipped = np.clip(y_pred, 1e-7, 1 - 1e-7)
+        correct_confidences = None
+        if len(y_true.shape) == 1:
+            correct_confidences = y_pred_clipped[range(samples_length), y_true]
+        elif len(y_true.shape) == 2:
+            correct_confidences = np.sum(y_pred_clipped * y_true, axis=1)
+        negative_log_likelihoods = -np.log(correct_confidences)
+        return negative_log_likelihoods
+
+
+x, y = spiral_data(samples=100, classes=3)
+dense1 = LayerDense(2, 3)
+activation1 = ActivationReLU()
+dense2 = LayerDense(3, 3)
+activation2 = ActivationSoftmax()
+loss_function = LossCategoricalCrossEntropy()
+dense1.forward(x)
+activation1.forward(dense1.output)
+dense2.forward(activation1.output)
+activation2.forward(dense2.output)
+print(activation2.output[:6])
+loss = loss_function.calculate(activation2.output, y)
+print("Loss:", loss)
+
+predictions = np.argmax(activation2.output, axis=1)
+if len(y.shape) == 2:
+    y = np.argmax(y, axis=1)
+accuracy = np.mean(predictions == y)
+print('acc', accuracy)
